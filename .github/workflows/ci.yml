@@ -39,6 +39,12 @@ jobs:
       - name: Install dependencies
         run: poetry install --no-interaction --no-ansi
 
+      - name: Start Docker containers
+        run: |
+          docker-compose up -d backend db
+          # Aguardar o backend estar disponível
+          docker-compose exec backend curl --retry 5 --retry-delay 10 --max-time 30 http://localhost:8000/
+
       - name: Run tests
         env:
           DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test_db"
