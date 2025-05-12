@@ -48,12 +48,15 @@ jobs:
         run: |
           poetry run alembic upgrade head || echo "Nenhuma migração encontrada"
 
+      - name: Adicionar diretório raiz ao PYTHONPATH
+        run: echo "PYTHONPATH=$(pwd)" >> $GITHUB_ENV
+
       - name: Rodar testes com cobertura
         env:
           DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test_db"
         run: |
           poetry run pytest -v --cov=./ --cov-report=xml
-          
+
       - name: Enviar cobertura para Codecov
         uses: codecov/codecov-action@v3
         if: success()
