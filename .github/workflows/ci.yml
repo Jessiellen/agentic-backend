@@ -1,10 +1,10 @@
----
 name: CI Pipeline
 
 on:
-  push: true
-  pull_request: true
-  branches: ["main"]
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
 
 jobs:
   test:
