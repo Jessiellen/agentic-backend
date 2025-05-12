@@ -38,6 +38,9 @@ jobs:
       - name: Instalar Poetry
         run: pip install poetry==1.7.0
 
+      - name: Adicionar Poetry ao PATH
+        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
+
       - name: Instalar dependências
         run: poetry install --no-interaction --no-ansi
 
