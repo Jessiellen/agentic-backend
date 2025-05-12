@@ -1,0 +1,6 @@
+extends: default
+rules:
+  truthy:
+    level: warning
+    allowed-values: ["yes", "no", "true", "false"]
+    check-keys: false
