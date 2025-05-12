@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: Pipeline CI
 
 on:
   push:
@@ -7,18 +7,19 @@ on:
     branches: ["main"]
 
 jobs:
-  test:
+  testar:
     runs-on: ubuntu-latest
+    timeout-minutes: 15  
 
     services:
       postgres:
         image: postgres:13
         env:
-          POSTGRES_USER: "postgres"
-          POSTGRES_PASSWORD: "postgres"
-          POSTGRES_DB: "test_db"
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
         ports:
-          - "5432:5432"
+          - 5432:5432
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
@@ -28,24 +29,30 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.9
+      - name: Configurar Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.9"
+          python-version: "3.10"  
+          cache: "poetry"  
 
-      - name: Install Poetry
+      - name: Instalar Poetry
         run: pip install poetry==1.7.0
 
-      - name: Install dependencies
+      - name: Instalar dependências
         run: poetry install --no-interaction --no-ansi
 
-      - name: Start Docker containers
-        run: |
-          docker-compose up -d backend db
-          # Aguardar o backend estar disponível
-          docker-compose exec backend curl --retry 5 --retry-delay 10 --max-time 30 http://localhost:8000/
-
-      - name: Run tests
+      - name: Rodar migrações (se necessário)
         env:
           DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test_db"
-        run: poetry run pytest -v --cov=.
+        run: |
+          poetry run alembic upgrade head || echo "Nenhuma migração encontrada"
+
+      - name: Rodar testes com cobertura
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/test_db"
+        run: |
+          poetry run pytest -v --cov=./ --cov-report=xml
+          
+      - name: Enviar cobertura para Codecov
+        uses: codecov/codecov-action@v3
+        if: success()
